@@ -23,11 +23,19 @@ Valid commands:
 
     patp2hex            : converts a @p-encoded string to a hex-encoded string
 
+    patp2point          : converts a @p-encoded string to a point-encoded string
+
     patq                : converts a number to a @q-encoded string
 
     patq2dec            : converts a @q-encoded string to a decimal-encoded string
 
     patq2hex            : converts a @q-encoded string to a hex-encoded string
+
+    patq2point          : converts a @q-encoded string to a point-encoded string
+
+    point2patp          : converts a point-encoded string to a @p-encoded string
+
+    point2patq          : converts a point-encoded string to a @q-encoded string
 
     hex2patp            : converts a hex-encoded string to a @p-encoded string
 
@@ -35,7 +43,11 @@ Valid commands:
 
     clan                : determines the ship class of a @p value
 
+    clanpoint           : determines the ship class of an int-encoded point
+
     sein                : determines the parent of a @p value
+
+    seinpoint           : determines the parent of an int-encoded point
 
     eqpatq              : performs an equality comparison on @q values
 
