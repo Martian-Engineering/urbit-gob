@@ -1,21 +1,56 @@
 package co
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-type stdTestCase struct {
+// test helpers
+// string2String: string to string
+// string2Int: string to integer - TODO: is this needed?
+// int2String: integer to string
+// int2Int: integer to integer
+// any2String: any type to string
+
+type string2StringTestCase struct {
 	in              string
 	out             string
 	expectedErrText string
 }
 
-type stdCoFn func(string) (string, error)
+type string2IntTestCase struct {
+	in              string
+	out             *big.Int
+	expectedErrText string
+}
 
-func stdTestRunner(t *testing.T, testCases []stdTestCase, f stdCoFn) {
+type int2StringTestCase struct {
+	in              *big.Int
+	out             string
+	expectedErrText string
+}
 
+type int2IntTestCase struct {
+	in              *big.Int
+	out             *big.Int
+	expectedErrText string
+}
+
+type any2StringTestCase struct {
+	in              interface{}
+	out             string
+	expectedErrText string
+}
+
+type string2StringCoFn func(string) (string, error)
+type string2IntCoFn func(string) (*big.Int, error)
+type int2StringCoFn func(*big.Int) (string, error)
+type int2IntCoFn func(*big.Int) (*big.Int, error)
+type any2StringCoFn func(interface{}) (string, error)
+
+func string2StringTestRunner(t *testing.T, testCases []string2StringTestCase, f string2StringCoFn) {
 	for _, tt := range testCases {
 		t.Run(tt.in, func(t *testing.T) {
 
@@ -34,9 +69,95 @@ func stdTestRunner(t *testing.T, testCases []stdTestCase, f stdCoFn) {
 	}
 }
 
-func TestPatp(t *testing.T) {
+func string2IntTestRunner(t *testing.T, testCases []string2IntTestCase, f string2IntCoFn) {
+	for _, tt := range testCases {
+		t.Run(tt.in, func(t *testing.T) {
 
-	var testCases = []stdTestCase{
+			actualOut, actualErr := f(tt.in)
+
+			assert.Equal(t, tt.out, actualOut)
+			if tt.expectedErrText == "" {
+				assert.NoError(t, actualErr)
+			} else {
+				assert.Error(t, actualErr)
+				if actualErr != nil {
+					assert.Equal(t, tt.expectedErrText, actualErr.Error())
+				}
+			}
+		})
+	}
+}
+
+func int2StringTestRunner(t *testing.T, testCases []int2StringTestCase, f int2StringCoFn) {
+	for _, tt := range testCases {
+		t.Run(tt.in.String(), func(t *testing.T) {
+
+			actualOut, actualErr := f(tt.in)
+
+			assert.Equal(t, tt.out, actualOut)
+			if tt.expectedErrText == "" {
+				assert.NoError(t, actualErr)
+			} else {
+				assert.Error(t, actualErr)
+				if actualErr != nil {
+					assert.Equal(t, tt.expectedErrText, actualErr.Error())
+				}
+			}
+		})
+	}
+}
+
+func int2IntTestRunner(t *testing.T, testCases []int2IntTestCase, f int2IntCoFn) {
+	for _, tt := range testCases {
+		t.Run(tt.in.String(), func(t *testing.T) {
+
+			actualOut, actualErr := f(tt.in)
+
+			assert.Equal(t, tt.out, actualOut)
+			if tt.expectedErrText == "" {
+				assert.NoError(t, actualErr)
+			} else {
+				assert.Error(t, actualErr)
+				if actualErr != nil {
+					assert.Equal(t, tt.expectedErrText, actualErr.Error())
+				}
+			}
+		})
+	}
+}
+
+func any2StringTestRunner(t *testing.T, testCases []any2StringTestCase, f any2StringCoFn) {
+	for _, tt := range testCases {
+		var testName string
+		switch v := tt.in.(type) {
+		case string:
+			testName = v
+		case *big.Int:
+			testName = v.String()
+		default:
+			testName = "unknown"
+		}
+
+		t.Run(testName, func(t *testing.T) {
+			actualOut, actualErr := f(tt.in)
+
+			assert.Equal(t, tt.out, actualOut)
+			if tt.expectedErrText == "" {
+				assert.NoError(t, actualErr)
+			} else {
+				assert.Error(t, actualErr)
+				if actualErr != nil {
+					assert.Equal(t, tt.expectedErrText, actualErr.Error())
+				}
+			}
+		})
+	}
+}
+
+// --- tests ---
+
+func TestPatp(t *testing.T) {
+	var testCases = []any2StringTestCase{
 		{
 			in:  "0",
 			out: "~zod",
@@ -82,17 +203,60 @@ func TestPatp(t *testing.T) {
 			out: "~doznec-dozzod-dozzod",
 		},
 		{
+			in:  big.NewInt(0),
+			out: "~zod",
+		},
+		{
+			in:  big.NewInt(255),
+			out: "~fes",
+		},
+		{
+			in:  big.NewInt(256),
+			out: "~marzod",
+		},
+		{
+			in:  big.NewInt(65535),
+			out: "~fipfes",
+		},
+		{
+			in:  big.NewInt(65536),
+			out: "~dapnep-ronmyl",
+		},
+		{
+			in:  big.NewInt(14287616),
+			out: "~rosmur-hobrem",
+		},
+		{
+			in:  big.NewInt(14287617),
+			out: "~sallus-nodlut",
+		},
+		{
+			in:  big.NewInt(14287618),
+			out: "~marder-mopdur",
+		},
+		{
+			in:  big.NewInt(14287619),
+			out: "~laphec-savted",
+		},
+		{
+			in:  big.NewInt(4294967295),
+			out: "~dostec-risfen",
+		},
+		{
+			in:  big.NewInt(4294967296),
+			out: "~doznec-dozzod-dozzod",
+		},
+		{
 			in:              "abcdefg",
 			expectedErrText: "invalid integer string: abcdefg",
 		},
 	}
 
-	stdTestRunner(t, testCases, Patp)
+	any2StringTestRunner(t, testCases, Patp)
 }
 
 func TestPatq(t *testing.T) {
-
-	var testCases = []stdTestCase{
+	var testCases = []any2StringTestCase{
 		{
 			in:  "0",
 			out: "~zod",
@@ -138,17 +302,60 @@ func TestPatq(t *testing.T) {
 			out: "~doznec-dozzod-dozzod",
 		},
 		{
+			in:  big.NewInt(0),
+			out: "~zod",
+		},
+		{
+			in:  big.NewInt(255),
+			out: "~fes",
+		},
+		{
+			in:  big.NewInt(256),
+			out: "~marzod",
+		},
+		{
+			in:  big.NewInt(65535),
+			out: "~fipfes",
+		},
+		{
+			in:  big.NewInt(65536),
+			out: "~doznec-dozzod",
+		},
+		{
+			in:  big.NewInt(14287616),
+			out: "~dozler-wanzod",
+		},
+		{
+			in:  big.NewInt(14287617),
+			out: "~dozler-wannec",
+		},
+		{
+			in:  big.NewInt(14287618),
+			out: "~dozler-wanbud",
+		},
+		{
+			in:  big.NewInt(14287619),
+			out: "~dozler-wanwes",
+		},
+		{
+			in:  big.NewInt(4294967295),
+			out: "~fipfes-fipfes",
+		},
+		{
+			in:  big.NewInt(4294967296),
+			out: "~doznec-dozzod-dozzod",
+		},
+		{
 			in:              "abcdefg",
 			expectedErrText: "invalid integer string: abcdefg",
 		},
 	}
 
-	stdTestRunner(t, testCases, Patq)
+	any2StringTestRunner(t, testCases, Patq)
 }
 
 func TestClan(t *testing.T) {
-
-	var testCases = []stdTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			in:  "~zod",
 			out: ShipClassGalaxy,
@@ -203,12 +410,11 @@ func TestClan(t *testing.T) {
 		},
 	}
 
-	stdTestRunner(t, testCases, Clan)
+	string2StringTestRunner(t, testCases, Clan)
 }
 
 func TestSein(t *testing.T) {
-
-	var testCases = []stdTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			in:  "~zod",
 			out: "~zod",
@@ -263,12 +469,11 @@ func TestSein(t *testing.T) {
 		},
 	}
 
-	stdTestRunner(t, testCases, Sein)
+	string2StringTestRunner(t, testCases, Sein)
 }
 
 func TestPatp2Dec(t *testing.T) {
-
-	var testCases = []stdTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			out: "0",
 			in:  "~zod",
@@ -319,12 +524,11 @@ func TestPatp2Dec(t *testing.T) {
 		},
 	}
 
-	stdTestRunner(t, testCases, Patp2Dec)
+	string2StringTestRunner(t, testCases, Patp2Dec)
 }
 
 func TestPatq2Dec(t *testing.T) {
-
-	var testCases = []stdTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			out: "0",
 			in:  "~zod",
@@ -375,12 +579,11 @@ func TestPatq2Dec(t *testing.T) {
 		},
 	}
 
-	stdTestRunner(t, testCases, Patq2Dec)
+	string2StringTestRunner(t, testCases, Patq2Dec)
 }
 
 func TestPatp2Hex(t *testing.T) {
-
-	var testCases = []stdTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			out: "00",
 			in:  "~zod",
@@ -431,12 +634,11 @@ func TestPatp2Hex(t *testing.T) {
 		},
 	}
 
-	stdTestRunner(t, testCases, Patp2Hex)
+	string2StringTestRunner(t, testCases, Patp2Hex)
 }
 
 func TestPatq2Hex(t *testing.T) {
-
-	var testCases = []stdTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			out: "00",
 			in:  "~zod",
@@ -488,12 +690,11 @@ func TestPatq2Hex(t *testing.T) {
 		},
 	}
 
-	stdTestRunner(t, testCases, Patq2Hex)
+	string2StringTestRunner(t, testCases, Patq2Hex)
 }
 
 func TestHex2Patp(t *testing.T) {
-
-	var testCases = []stdTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			in:  "00",
 			out: "~zod",
@@ -544,12 +745,11 @@ func TestHex2Patp(t *testing.T) {
 		},
 	}
 
-	stdTestRunner(t, testCases, Hex2Patp)
+	string2StringTestRunner(t, testCases, Hex2Patp)
 }
 
 func TestHex2Patq(t *testing.T) {
-
-	var testCases = []stdTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			in:  "00",
 			out: "~zod",
@@ -600,5 +800,328 @@ func TestHex2Patq(t *testing.T) {
 		},
 	}
 
-	stdTestRunner(t, testCases, Hex2Patq)
+	string2StringTestRunner(t, testCases, Hex2Patq)
 }
+
+func TestPatp2Point(t *testing.T) {
+	var testCases = []string2IntTestCase{
+		{
+			in:  "~zod",
+			out: big.NewInt(0),
+		},
+		{
+			in:  "~fes",
+			out: big.NewInt(255),
+		},
+		{
+			in:  "~marzod",
+			out: big.NewInt(256),
+		},
+		{
+			in:  "~fipfes",
+			out: big.NewInt(65535),
+		},
+		{
+			in:  "~dapnep-ronmyl",
+			out: big.NewInt(65536),
+		},
+		{
+			in:  "~rosmur-hobrem",
+			out: big.NewInt(14287616),
+		},
+		{
+			in:  "~sallus-nodlut",
+			out: big.NewInt(14287617),
+		},
+		{
+			in:  "~marder-mopdur",
+			out: big.NewInt(14287618),
+		},
+		{
+			in:  "~laphec-savted",
+			out: big.NewInt(14287619),
+		},
+		{
+			in:  "~dostec-risfen",
+			out: big.NewInt(4294967295),
+		},
+		{
+			in:  "~doznec-dozzod-dozzod",
+			out: big.NewInt(4294967296),
+		},
+		{
+			in:              "~abcdefg",
+			expectedErrText: "invalid @p: ~abcdefg",
+		},
+	}
+
+	string2IntTestRunner(t, testCases, Patp2Point)
+}
+
+// Point2Patp
+func TestPoint2Patp(t *testing.T) {
+	var testCases = []int2StringTestCase{
+		{
+			in:  big.NewInt(0),
+			out: "~zod",
+		},
+		{
+			in:  big.NewInt(255),
+			out: "~fes",
+		},
+		{
+			in:  big.NewInt(256),
+			out: "~marzod",
+		},
+		{
+			in:  big.NewInt(65535),
+			out: "~fipfes",
+		},
+		{
+			in:  big.NewInt(65536),
+			out: "~dapnep-ronmyl",
+		},
+		{
+			in:  big.NewInt(14287616),
+			out: "~rosmur-hobrem",
+		},
+		{
+			in:  big.NewInt(14287617),
+			out: "~sallus-nodlut",
+		},
+		{
+			in:  big.NewInt(14287618),
+			out: "~marder-mopdur",
+		},
+		{
+			in:  big.NewInt(14287619),
+			out: "~laphec-savted",
+		},
+		{
+			in:  big.NewInt(4294967295),
+			out: "~dostec-risfen",
+		},
+		{
+			in:  big.NewInt(4294967296),
+			out: "~doznec-dozzod-dozzod",
+		},
+	}
+
+	int2StringTestRunner(t, testCases, Point2Patp)
+}
+
+// Patq2Point
+func TestPatq2Point(t *testing.T) {
+	var testCases = []string2IntTestCase{
+		{
+			in:  "~zod",
+			out: big.NewInt(0),
+		},
+		{
+			in:  "~fes",
+			out: big.NewInt(255),
+		},
+		{
+			in:  "~marzod",
+			out: big.NewInt(256),
+		},
+		{
+			in:  "~fipfes",
+			out: big.NewInt(65535),
+		},
+		{
+			in:  "~doznec-dozzod",
+			out: big.NewInt(65536),
+		},
+		{
+			in:  "~dozler-wanzod",
+			out: big.NewInt(14287616),
+		},
+		{
+			in:  "~dozler-wannec",
+			out: big.NewInt(14287617),
+		},
+		{
+			in:  "~dozler-wanbud",
+			out: big.NewInt(14287618),
+		},
+		{
+			in:  "~dozler-wanwes",
+			out: big.NewInt(14287619),
+		},
+		{
+			in:  "~fipfes-fipfes",
+			out: big.NewInt(4294967295),
+		},
+		{
+			in:  "~doznec-dozzod-dozzod",
+			out: big.NewInt(4294967296),
+		},
+		{
+			in:              "abcdefg",
+			expectedErrText: "invalid @q: abcdefg",
+		},
+	}
+
+	string2IntTestRunner(t, testCases, Patq2Point)
+}
+
+// Point2Patq
+func TestPoint2Patq(t *testing.T) {
+	var testCases = []int2StringTestCase{
+		{
+			in:  big.NewInt(0),
+			out: "~zod",
+		},
+		{
+			in:  big.NewInt(255),
+			out: "~fes",
+		},
+		{
+			in:  big.NewInt(256),
+			out: "~marzod",
+		},
+		{
+			in:  big.NewInt(65535),
+			out: "~fipfes",
+		},
+		{
+			in:  big.NewInt(65536),
+			out: "~doznec-dozzod",
+		},
+		{
+			in:  big.NewInt(14287616),
+			out: "~dozler-wanzod",
+		},
+		{
+			in:  big.NewInt(14287617),
+			out: "~dozler-wannec",
+		},
+		{
+			in:  big.NewInt(14287618),
+			out: "~dozler-wanbud",
+		},
+		{
+			in:  big.NewInt(14287619),
+			out: "~dozler-wanwes",
+		},
+		{
+			in:  big.NewInt(4294967295),
+			out: "~fipfes-fipfes",
+		},
+		{
+			in:  big.NewInt(4294967296),
+			out: "~doznec-dozzod-dozzod",
+		},
+	}
+
+	int2StringTestRunner(t, testCases, Point2Patq)
+}
+
+// SeinPoint
+func TestSeinPoint(t *testing.T) {
+	var testCases = []int2IntTestCase{
+		{
+			in:  big.NewInt(0),
+			out: big.NewInt(0),
+		},
+		{
+			in:  big.NewInt(255),
+			out: big.NewInt(255),
+		},
+		{
+			in:  big.NewInt(256),
+			out: big.NewInt(0),
+		},
+		{
+			in:  big.NewInt(65535),
+			out: big.NewInt(255),
+		},
+		{
+			in:  big.NewInt(65536),
+			out: big.NewInt(0),
+		},
+		{
+			in:  big.NewInt(14287616),
+			out: big.NewInt(768),
+		},
+		{
+			in:  big.NewInt(14287617),
+			out: big.NewInt(769),
+		},
+		{
+			in:  big.NewInt(14287618),
+			out: big.NewInt(770),
+		},
+		{
+			in:  big.NewInt(14287619),
+			out: big.NewInt(771),
+		},
+		{
+			in:  big.NewInt(4294967295),
+			out: big.NewInt(65535),
+		},
+		{
+			in:  big.NewInt(4294967296),
+			out: big.NewInt(0),
+		},
+	}
+
+	int2IntTestRunner(t, testCases, SeinPoint)
+}
+
+// ClanPoint
+func TestClanPoint(t *testing.T) {
+	var testCases = []int2StringTestCase{
+		{
+			in:  big.NewInt(0),
+			out: ShipClassGalaxy,
+		},
+		{
+			in:  big.NewInt(255),
+			out: ShipClassGalaxy,
+		},
+		{
+			in:  big.NewInt(256),
+			out: ShipClassStar,
+		},
+		{
+			in:  big.NewInt(65535),
+			out: ShipClassStar,
+		},
+		{
+			in:  big.NewInt(65536),
+			out: ShipClassPlanet,
+		},
+		{
+			in:  big.NewInt(14287616),
+			out: ShipClassPlanet,
+		},
+		{
+			in:  big.NewInt(14287617),
+			out: ShipClassPlanet,
+		},
+		{
+			in:  big.NewInt(14287618),
+			out: ShipClassPlanet,
+		},
+		{
+			in:  big.NewInt(14287619),
+			out: ShipClassPlanet,
+		},
+		{
+			in:  big.NewInt(4294967295),
+			out: ShipClassPlanet,
+		},
+		{
+			in:  big.NewInt(4294967296),
+			out: ShipClassMoon,
+		},
+	}
+
+	int2StringTestRunner(t, testCases, ClanPoint)
+}
+
+// TODO:
+//
+// string prepended / not with ~

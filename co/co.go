@@ -199,10 +199,25 @@ func patp2bn(name string) (*big.Int, error) {
 	return hex, nil
 }
 
+// Patp2Point converts a @p-encoded string to a big.Int pointer.
+func Patp2Point(name string) (*big.Int, error) {
+	point, err := patp2bn(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return point, nil
+}
+
+// Point2Patp converts a big.Int pointer to a @p-encoded string.
+func Point2Patp(point *big.Int) (string, error) {
+	return Patp(point.String())
+}
+
 // Patp2Dec converts a @p-encoded string to a decimal-encoded string.
 func Patp2Dec(name string) (string, error) {
 
-	dec, err := patp2bn(name)
+	dec, err := Patp2Point(name)
 	if err != nil {
 		return "", err
 	}
@@ -210,8 +225,7 @@ func Patp2Dec(name string) (string, error) {
 	return dec.String(), nil
 }
 
-// Patq converts a number to a @q-encoded string.
-func Patq(arg string) (string, error) {
+func patq(arg string) (string, error) {
 
 	v, ok := big.NewInt(0).SetString(arg, 10)
 	if !ok {
@@ -224,6 +238,33 @@ func Patq(arg string) (string, error) {
 		buf = []byte{0}
 	}
 	return buf2patq(buf), nil
+}
+
+// Patq converts a string-encoded int or *big.Int to a @q-encoded string.
+func Patq(arg interface{}) (string, error) {
+	switch v := arg.(type) {
+	case string:
+		return patq(v)
+	case *big.Int:
+		return patq(v.String())
+	default:
+		return "", fmt.Errorf(ugi.ErrInvalidQ, v)
+	}
+}
+
+// Patq2Point converts a @q-encoded string to a big.Int pointer.
+func Patq2Point(name string) (*big.Int, error) {
+	point, err := patq2bn(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return point, nil
+}
+
+// Point2Patq converts a big.Int pointer to a @q-encoded string.
+func Point2Patq(point *big.Int) (string, error) {
+	return Patq(point.String())
 }
 
 func buf2patq(buf []byte) string {
@@ -409,6 +450,15 @@ func Clan(who string) (string, error) {
 	return ShipClassComet, nil
 }
 
+// ClanPoint determines the ship class of a big.Int-encoded @p value.
+func ClanPoint(arg *big.Int) (string, error) {
+	patp, err := Patp(arg)
+	if err != nil {
+		return "", err
+	}
+	return Clan(patp)
+}
+
 // Sein determines the parent of a @p value.
 func Sein(name string) (string, error) {
 
@@ -437,6 +487,20 @@ func Sein(name string) (string, error) {
 	}
 
 	return Patp(res.String())
+}
+
+// SeinPoint determines the parent of a big.Int-encoded @p value.
+func SeinPoint(arg *big.Int) (*big.Int, error) {
+	patp, err := Point2Patp(arg)
+	if err != nil {
+		return nil, err
+	}
+	sein, err := Sein(patp)
+	if err != nil {
+		return nil, err
+	}
+
+	return Patp2Point(sein)
 }
 
 /*
@@ -539,9 +603,7 @@ func EqPatq(p, q string) (bool, error) {
 	return eqModLeadingZeros(phex, qhex), nil
 }
 
-// Patp converts a number to a @p-encoded string.
-func Patp(arg string) (string, error) {
-
+func patp(arg string) (string, error) {
 	v, ok := big.NewInt(0).SetString(arg, 10)
 	if !ok {
 		return "", fmt.Errorf(ugi.ErrInvalidInt, arg)
@@ -564,6 +626,18 @@ func Patp(arg string) (string, error) {
 	}
 
 	return p, nil
+}
+
+// Patp converts a either a string-encoded int or *big.Int to a @p-encoded string.
+func Patp(arg interface{}) (string, error) {
+	switch v := arg.(type) {
+	case string:
+		return patp(v)
+	case *big.Int:
+		return patp(v.String())
+	default:
+		return "", fmt.Errorf(ugi.ErrInvalidP, arg)
+	}
 }
 
 func patpLoop(dyy, tsxz, timp *big.Int, trep string) string {
