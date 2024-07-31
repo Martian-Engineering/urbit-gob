@@ -7,4 +7,5 @@ const (
 	ErrInvalidInt string = "invalid integer string: %s"
 	ErrInvalidP   string = "invalid @p: %s"
 	ErrInvalidQ   string = "invalid @q: %s"
+	ErrInvalidI   string = "invalid integer: %s"
 )
