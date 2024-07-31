@@ -128,8 +128,17 @@ func i2iTestRunner(t *testing.T, testCases []i2iTestCase, f i2iCoFn) {
 
 func a2sTestRunner(t *testing.T, testCases []a2sTestCase, f a2sCoFn) {
 	for _, tt := range testCases {
-		t.Run(tt.in.(string), func(t *testing.T) {
+		var testName string
+		switch v := tt.in.(type) {
+		case string:
+			testName = v
+		case *big.Int:
+			testName = v.String()
+		default:
+			testName = "unknown"
+		}
 
+		t.Run(testName, func(t *testing.T) {
 			actualOut, actualErr := f(tt.in)
 
 			assert.Equal(t, tt.out, actualOut)
@@ -194,6 +203,50 @@ func TestPatp(t *testing.T) {
 			out: "~doznec-dozzod-dozzod",
 		},
 		{
+			in:  big.NewInt(0),
+			out: "~zod",
+		},
+		{
+			in:  big.NewInt(255),
+			out: "~fes",
+		},
+		{
+			in:  big.NewInt(256),
+			out: "~marzod",
+		},
+		{
+			in:  big.NewInt(65535),
+			out: "~fipfes",
+		},
+		{
+			in:  big.NewInt(65536),
+			out: "~dapnep-ronmyl",
+		},
+		{
+			in:  big.NewInt(14287616),
+			out: "~rosmur-hobrem",
+		},
+		{
+			in:  big.NewInt(14287617),
+			out: "~sallus-nodlut",
+		},
+		{
+			in:  big.NewInt(14287618),
+			out: "~marder-mopdur",
+		},
+		{
+			in:  big.NewInt(14287619),
+			out: "~laphec-savted",
+		},
+		{
+			in:  big.NewInt(4294967295),
+			out: "~dostec-risfen",
+		},
+		{
+			in:  big.NewInt(4294967296),
+			out: "~doznec-dozzod-dozzod",
+		},
+		{
 			in:              "abcdefg",
 			expectedErrText: "invalid integer string: abcdefg",
 		},
@@ -246,6 +299,50 @@ func TestPatq(t *testing.T) {
 		},
 		{
 			in:  "4294967296",
+			out: "~doznec-dozzod-dozzod",
+		},
+		{
+			in:  big.NewInt(0),
+			out: "~zod",
+		},
+		{
+			in:  big.NewInt(255),
+			out: "~fes",
+		},
+		{
+			in:  big.NewInt(256),
+			out: "~marzod",
+		},
+		{
+			in:  big.NewInt(65535),
+			out: "~fipfes",
+		},
+		{
+			in:  big.NewInt(65536),
+			out: "~doznec-dozzod",
+		},
+		{
+			in:  big.NewInt(14287616),
+			out: "~dozler-wanzod",
+		},
+		{
+			in:  big.NewInt(14287617),
+			out: "~dozler-wannec",
+		},
+		{
+			in:  big.NewInt(14287618),
+			out: "~dozler-wanbud",
+		},
+		{
+			in:  big.NewInt(14287619),
+			out: "~dozler-wanwes",
+		},
+		{
+			in:  big.NewInt(4294967295),
+			out: "~fipfes-fipfes",
+		},
+		{
+			in:  big.NewInt(4294967296),
 			out: "~doznec-dozzod-dozzod",
 		},
 		{
@@ -1027,6 +1124,4 @@ func TestClanPoint(t *testing.T) {
 
 // TODO:
 //
-// Patp can handle string or int
-// Patq can handle string or int
 // string prepended / not with ~
