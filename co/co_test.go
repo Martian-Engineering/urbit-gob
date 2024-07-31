@@ -8,49 +8,49 @@ import (
 )
 
 // test helpers
-// s2s: string to string
-// s2i: string to integer - TODO: is this needed?
-// i2s: integer to string
-// i2i: integer to integer
-// a2s: any type to string
+// string2String: string to string
+// string2Int: string to integer - TODO: is this needed?
+// int2String: integer to string
+// int2Int: integer to integer
+// any2String: any type to string
 
-type s2sTestCase struct {
+type string2StringTestCase struct {
 	in              string
 	out             string
 	expectedErrText string
 }
 
-type s2iTestCase struct {
+type string2IntTestCase struct {
 	in              string
 	out             *big.Int
 	expectedErrText string
 }
 
-type i2sTestCase struct {
+type int2StringTestCase struct {
 	in              *big.Int
 	out             string
 	expectedErrText string
 }
 
-type i2iTestCase struct {
+type int2IntTestCase struct {
 	in              *big.Int
 	out             *big.Int
 	expectedErrText string
 }
 
-type a2sTestCase struct {
+type any2StringTestCase struct {
 	in              interface{}
 	out             string
 	expectedErrText string
 }
 
-type s2sCoFn func(string) (string, error)
-type s2iCoFn func(string) (*big.Int, error)
-type i2sCoFn func(*big.Int) (string, error)
-type i2iCoFn func(*big.Int) (*big.Int, error)
-type a2sCoFn func(interface{}) (string, error)
+type string2StringCoFn func(string) (string, error)
+type string2IntCoFn func(string) (*big.Int, error)
+type int2StringCoFn func(*big.Int) (string, error)
+type int2IntCoFn func(*big.Int) (*big.Int, error)
+type any2StringCoFn func(interface{}) (string, error)
 
-func s2sTestRunner(t *testing.T, testCases []s2sTestCase, f s2sCoFn) {
+func string2StringTestRunner(t *testing.T, testCases []string2StringTestCase, f string2StringCoFn) {
 	for _, tt := range testCases {
 		t.Run(tt.in, func(t *testing.T) {
 
@@ -69,7 +69,7 @@ func s2sTestRunner(t *testing.T, testCases []s2sTestCase, f s2sCoFn) {
 	}
 }
 
-func s2iTestRunner(t *testing.T, testCases []s2iTestCase, f s2iCoFn) {
+func string2IntTestRunner(t *testing.T, testCases []string2IntTestCase, f string2IntCoFn) {
 	for _, tt := range testCases {
 		t.Run(tt.in, func(t *testing.T) {
 
@@ -88,7 +88,7 @@ func s2iTestRunner(t *testing.T, testCases []s2iTestCase, f s2iCoFn) {
 	}
 }
 
-func i2sTestRunner(t *testing.T, testCases []i2sTestCase, f i2sCoFn) {
+func int2StringTestRunner(t *testing.T, testCases []int2StringTestCase, f int2StringCoFn) {
 	for _, tt := range testCases {
 		t.Run(tt.in.String(), func(t *testing.T) {
 
@@ -107,7 +107,7 @@ func i2sTestRunner(t *testing.T, testCases []i2sTestCase, f i2sCoFn) {
 	}
 }
 
-func i2iTestRunner(t *testing.T, testCases []i2iTestCase, f i2iCoFn) {
+func int2IntTestRunner(t *testing.T, testCases []int2IntTestCase, f int2IntCoFn) {
 	for _, tt := range testCases {
 		t.Run(tt.in.String(), func(t *testing.T) {
 
@@ -126,7 +126,7 @@ func i2iTestRunner(t *testing.T, testCases []i2iTestCase, f i2iCoFn) {
 	}
 }
 
-func a2sTestRunner(t *testing.T, testCases []a2sTestCase, f a2sCoFn) {
+func any2StringTestRunner(t *testing.T, testCases []any2StringTestCase, f any2StringCoFn) {
 	for _, tt := range testCases {
 		var testName string
 		switch v := tt.in.(type) {
@@ -157,7 +157,7 @@ func a2sTestRunner(t *testing.T, testCases []a2sTestCase, f a2sCoFn) {
 // --- tests ---
 
 func TestPatp(t *testing.T) {
-	var testCases = []a2sTestCase{
+	var testCases = []any2StringTestCase{
 		{
 			in:  "0",
 			out: "~zod",
@@ -252,11 +252,11 @@ func TestPatp(t *testing.T) {
 		},
 	}
 
-	a2sTestRunner(t, testCases, Patp)
+	any2StringTestRunner(t, testCases, Patp)
 }
 
 func TestPatq(t *testing.T) {
-	var testCases = []a2sTestCase{
+	var testCases = []any2StringTestCase{
 		{
 			in:  "0",
 			out: "~zod",
@@ -351,11 +351,11 @@ func TestPatq(t *testing.T) {
 		},
 	}
 
-	a2sTestRunner(t, testCases, Patq)
+	any2StringTestRunner(t, testCases, Patq)
 }
 
 func TestClan(t *testing.T) {
-	var testCases = []s2sTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			in:  "~zod",
 			out: ShipClassGalaxy,
@@ -410,11 +410,11 @@ func TestClan(t *testing.T) {
 		},
 	}
 
-	s2sTestRunner(t, testCases, Clan)
+	string2StringTestRunner(t, testCases, Clan)
 }
 
 func TestSein(t *testing.T) {
-	var testCases = []s2sTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			in:  "~zod",
 			out: "~zod",
@@ -469,11 +469,11 @@ func TestSein(t *testing.T) {
 		},
 	}
 
-	s2sTestRunner(t, testCases, Sein)
+	string2StringTestRunner(t, testCases, Sein)
 }
 
 func TestPatp2Dec(t *testing.T) {
-	var testCases = []s2sTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			out: "0",
 			in:  "~zod",
@@ -524,11 +524,11 @@ func TestPatp2Dec(t *testing.T) {
 		},
 	}
 
-	s2sTestRunner(t, testCases, Patp2Dec)
+	string2StringTestRunner(t, testCases, Patp2Dec)
 }
 
 func TestPatq2Dec(t *testing.T) {
-	var testCases = []s2sTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			out: "0",
 			in:  "~zod",
@@ -579,11 +579,11 @@ func TestPatq2Dec(t *testing.T) {
 		},
 	}
 
-	s2sTestRunner(t, testCases, Patq2Dec)
+	string2StringTestRunner(t, testCases, Patq2Dec)
 }
 
 func TestPatp2Hex(t *testing.T) {
-	var testCases = []s2sTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			out: "00",
 			in:  "~zod",
@@ -634,11 +634,11 @@ func TestPatp2Hex(t *testing.T) {
 		},
 	}
 
-	s2sTestRunner(t, testCases, Patp2Hex)
+	string2StringTestRunner(t, testCases, Patp2Hex)
 }
 
 func TestPatq2Hex(t *testing.T) {
-	var testCases = []s2sTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			out: "00",
 			in:  "~zod",
@@ -690,11 +690,11 @@ func TestPatq2Hex(t *testing.T) {
 		},
 	}
 
-	s2sTestRunner(t, testCases, Patq2Hex)
+	string2StringTestRunner(t, testCases, Patq2Hex)
 }
 
 func TestHex2Patp(t *testing.T) {
-	var testCases = []s2sTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			in:  "00",
 			out: "~zod",
@@ -745,11 +745,11 @@ func TestHex2Patp(t *testing.T) {
 		},
 	}
 
-	s2sTestRunner(t, testCases, Hex2Patp)
+	string2StringTestRunner(t, testCases, Hex2Patp)
 }
 
 func TestHex2Patq(t *testing.T) {
-	var testCases = []s2sTestCase{
+	var testCases = []string2StringTestCase{
 		{
 			in:  "00",
 			out: "~zod",
@@ -800,11 +800,11 @@ func TestHex2Patq(t *testing.T) {
 		},
 	}
 
-	s2sTestRunner(t, testCases, Hex2Patq)
+	string2StringTestRunner(t, testCases, Hex2Patq)
 }
 
 func TestPatp2Point(t *testing.T) {
-	var testCases = []s2iTestCase{
+	var testCases = []string2IntTestCase{
 		{
 			in:  "~zod",
 			out: big.NewInt(0),
@@ -855,12 +855,12 @@ func TestPatp2Point(t *testing.T) {
 		},
 	}
 
-	s2iTestRunner(t, testCases, Patp2Point)
+	string2IntTestRunner(t, testCases, Patp2Point)
 }
 
 // Point2Patp
 func TestPoint2Patp(t *testing.T) {
-	var testCases = []i2sTestCase{
+	var testCases = []int2StringTestCase{
 		{
 			in:  big.NewInt(0),
 			out: "~zod",
@@ -907,12 +907,12 @@ func TestPoint2Patp(t *testing.T) {
 		},
 	}
 
-	i2sTestRunner(t, testCases, Point2Patp)
+	int2StringTestRunner(t, testCases, Point2Patp)
 }
 
 // Patq2Point
 func TestPatq2Point(t *testing.T) {
-	var testCases = []s2iTestCase{
+	var testCases = []string2IntTestCase{
 		{
 			in:  "~zod",
 			out: big.NewInt(0),
@@ -963,12 +963,12 @@ func TestPatq2Point(t *testing.T) {
 		},
 	}
 
-	s2iTestRunner(t, testCases, Patq2Point)
+	string2IntTestRunner(t, testCases, Patq2Point)
 }
 
 // Point2Patq
 func TestPoint2Patq(t *testing.T) {
-	var testCases = []i2sTestCase{
+	var testCases = []int2StringTestCase{
 		{
 			in:  big.NewInt(0),
 			out: "~zod",
@@ -1015,12 +1015,12 @@ func TestPoint2Patq(t *testing.T) {
 		},
 	}
 
-	i2sTestRunner(t, testCases, Point2Patq)
+	int2StringTestRunner(t, testCases, Point2Patq)
 }
 
 // SeinPoint
 func TestSeinPoint(t *testing.T) {
-	var testCases = []i2iTestCase{
+	var testCases = []int2IntTestCase{
 		{
 			in:  big.NewInt(0),
 			out: big.NewInt(0),
@@ -1067,12 +1067,12 @@ func TestSeinPoint(t *testing.T) {
 		},
 	}
 
-	i2iTestRunner(t, testCases, SeinPoint)
+	int2IntTestRunner(t, testCases, SeinPoint)
 }
 
 // ClanPoint
 func TestClanPoint(t *testing.T) {
-	var testCases = []i2sTestCase{
+	var testCases = []int2StringTestCase{
 		{
 			in:  big.NewInt(0),
 			out: ShipClassGalaxy,
@@ -1119,7 +1119,7 @@ func TestClanPoint(t *testing.T) {
 		},
 	}
 
-	i2sTestRunner(t, testCases, ClanPoint)
+	int2StringTestRunner(t, testCases, ClanPoint)
 }
 
 // TODO:

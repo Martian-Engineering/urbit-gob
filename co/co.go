@@ -201,17 +201,17 @@ func patp2bn(name string) (*big.Int, error) {
 
 // Patp2Point converts a @p-encoded string to a big.Int pointer.
 func Patp2Point(name string) (*big.Int, error) {
-	int, err := patp2bn(name)
+	point, err := patp2bn(name)
 	if err != nil {
 		return nil, err
 	}
 
-	return int, nil
+	return point, nil
 }
 
 // Point2Patp converts a big.Int pointer to a @p-encoded string.
-func Point2Patp(int *big.Int) (string, error) {
-	return Patp(int.String())
+func Point2Patp(point *big.Int) (string, error) {
+	return Patp(point.String())
 }
 
 // Patp2Dec converts a @p-encoded string to a decimal-encoded string.
@@ -225,7 +225,6 @@ func Patp2Dec(name string) (string, error) {
 	return dec.String(), nil
 }
 
-// Patq converts a number to a @q-encoded string.
 func patq(arg string) (string, error) {
 
 	v, ok := big.NewInt(0).SetString(arg, 10)
@@ -241,7 +240,7 @@ func patq(arg string) (string, error) {
 	return buf2patq(buf), nil
 }
 
-// Patq2Dec converts a string-encoded int or *big.Int to a @q-encoded string.
+// Patq converts a string-encoded int or *big.Int to a @q-encoded string.
 func Patq(arg interface{}) (string, error) {
 	switch v := arg.(type) {
 	case string:
@@ -255,17 +254,17 @@ func Patq(arg interface{}) (string, error) {
 
 // Patq2Point converts a @q-encoded string to a big.Int pointer.
 func Patq2Point(name string) (*big.Int, error) {
-	int, err := patq2bn(name)
+	point, err := patq2bn(name)
 	if err != nil {
 		return nil, err
 	}
 
-	return int, nil
+	return point, nil
 }
 
 // Point2Patq converts a big.Int pointer to a @q-encoded string.
-func Point2Patq(int *big.Int) (string, error) {
-	return Patq(int.String())
+func Point2Patq(point *big.Int) (string, error) {
+	return Patq(point.String())
 }
 
 func buf2patq(buf []byte) string {
