@@ -4,6 +4,9 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"runtime"
+	"sync"
+	"sync/atomic"
 	"testing"
 )
 
@@ -26,43 +29,118 @@ func TestExhaustiveBijectivity(t *testing.T) {
 		{"feistel range", big.NewInt(0x10000), big.NewInt(0x100000000)},
 	}
 
+	numWorkers := runtime.NumCPU()
+	
 	for _, tr := range testRanges {
 		t.Run(tr.name, func(t *testing.T) {
-			seen := make(map[string]string) // encrypted -> original
-			count := big.NewInt(0)
+			// Use sync.Map for thread-safe collision detection
+			seen := &sync.Map{} // encrypted -> original
 			
-			for i := new(big.Int).Set(tr.start); i.Cmp(tr.end) < 0; i.Add(i, big.NewInt(1)) {
-				// Encrypt
-				encrypted, err := Fein(i.String())
-				if err != nil {
-					t.Fatalf("Fein failed for %s: %v", i.String(), err)
-				}
-				
-				encStr := encrypted.String()
-				
-				// Check for collisions
-				if original, exists := seen[encStr]; exists {
-					t.Fatalf("COLLISION DETECTED: %s and %s both encrypt to %s", original, i.String(), encStr)
-				}
-				seen[encStr] = i.String()
-				
-				// Verify round-trip
-				decrypted, err := Fynd(encrypted)
-				if err != nil {
-					t.Fatalf("Fynd failed for %s: %v", encrypted.String(), err)
-				}
-				
-				if decrypted.Cmp(i) != 0 {
-					t.Fatalf("Round-trip failed: %s -> %s -> %s", i.String(), encrypted.String(), decrypted.String())
-				}
-				
-				count.Add(count, big.NewInt(1))
-				if count.Mod(count, big.NewInt(1000000)).Cmp(big.NewInt(0)) == 0 {
-					fmt.Printf("Progress: tested %s values\n", count.String())
-				}
+			// Atomic counter for progress tracking
+			var count atomic.Int64
+			var collisions atomic.Int64
+			
+			// Calculate total work
+			rangeSize := new(big.Int).Sub(tr.end, tr.start)
+			
+			// Work channel and wait group
+			workChan := make(chan *big.Int, numWorkers*10)
+			var wg sync.WaitGroup
+			
+			// Error channel for collecting failures
+			errChan := make(chan error, numWorkers)
+			
+			// Start workers
+			for w := 0; w < numWorkers; w++ {
+				wg.Add(1)
+				go func(workerID int) {
+					defer wg.Done()
+					
+					for i := range workChan {
+						// Encrypt
+						encrypted, err := Fein(i.String())
+						if err != nil {
+							errChan <- fmt.Errorf("worker %d: Fein failed for %s: %v", workerID, i.String(), err)
+							continue
+						}
+						
+						encStr := encrypted.String()
+						
+						// Check for collisions
+						if original, loaded := seen.LoadOrStore(encStr, i.String()); loaded {
+							origStr := original.(string)
+							if origStr != i.String() {
+								collisions.Add(1)
+								errChan <- fmt.Errorf("COLLISION DETECTED: %s and %s both encrypt to %s", origStr, i.String(), encStr)
+							}
+							// If it's the same input, that's fine (can happen due to range overlap)
+							continue
+						}
+						
+						// Verify round-trip
+						decrypted, err := Fynd(encrypted)
+						if err != nil {
+							errChan <- fmt.Errorf("worker %d: Fynd failed for %s: %v", workerID, encrypted.String(), err)
+							continue
+						}
+						
+						if decrypted.Cmp(i) != 0 {
+							errChan <- fmt.Errorf("worker %d: Round-trip failed: %s -> %s -> %s", workerID, i.String(), encrypted.String(), decrypted.String())
+							continue
+						}
+						
+						// Update progress
+						currentCount := count.Add(1)
+						if currentCount%1000000 == 0 {
+							progress := float64(currentCount) / float64(rangeSize.Int64()) * 100
+							fmt.Printf("Progress: tested %d values (%.1f%%)\n", currentCount, progress)
+						}
+					}
+				}(w)
 			}
 			
-			fmt.Printf("Successfully tested %s values in range %s-%s\n", count.String(), tr.start.String(), tr.end.String())
+			// Generate work
+			go func() {
+				for i := new(big.Int).Set(tr.start); i.Cmp(tr.end) < 0; i.Add(i, big.NewInt(1)) {
+					workChan <- new(big.Int).Set(i) // Copy i to avoid race
+				}
+				close(workChan)
+			}()
+			
+			// Collect errors in a separate goroutine
+			var errors []error
+			errDone := make(chan struct{})
+			go func() {
+				for err := range errChan {
+					errors = append(errors, err)
+					// Stop on first collision
+					if collisions.Load() > 0 {
+						break
+					}
+				}
+				close(errDone)
+			}()
+			
+			// Wait for all workers to finish
+			wg.Wait()
+			close(errChan)
+			<-errDone
+			
+			// Check for errors
+			if len(errors) > 0 {
+				for i, err := range errors {
+					t.Errorf("Error %d: %v", i+1, err)
+					if i >= 10 && len(errors) > 11 {
+						t.Errorf("... and %d more errors", len(errors)-11)
+						break
+					}
+				}
+				t.FailNow()
+			}
+			
+			finalCount := count.Load()
+			fmt.Printf("Successfully tested %d values in range %s-%s using %d workers\n", 
+				finalCount, tr.start.String(), tr.end.String(), numWorkers)
 		})
 	}
 }
